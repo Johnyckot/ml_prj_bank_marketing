@@ -1,105 +1,106 @@
+# Bank Marketing Prediction
+
+## Table of Contents
+1. [Problem Description](#1-problem-description)
+2. [Data Analysis](#2-data-analysis)
+3. [Exploratory Data Analysis Results](#3-exploratory-data-analysis-results)
+4. [Models Training and Evaluation](#4-models-training-and-evaluation)
+5. [Source Code](#5-source-code)
+6. [Dependency Management](#6-dependency-management)
+7. [Containerization](#7-containerization)
+8. [Test Run](#8-test-run)
+
+## 1. Problem Description
+A Portuguese banking institution implements direct marketing campaigns primarily based on phone calls. Often, more than one contact with the same client is necessary to determine if the client will subscribe to a bank term deposit product.
+
+**Project Goal**: Predict whether a client will subscribe to a term deposit based on available data about the customer.
+
+The dataset used in this project is publicly available at [OpenML Dataset](https://www.openml.org/search?type=data&sort=runs&status=active&id=1461).
+
+### Dataset Fields
+- **Bank client data**:
+  1. `age`: Age of the client (numeric)
+  2. `job`: Type of job (categorical)
+  3. `marital`: Marital status (categorical)
+  4. `education`: Education level (categorical)
+  5. `default`: Has credit in default? (binary)
+  6. `balance`: Average yearly balance, in euros (numeric)
+  7. `housing`: Has housing loan? (binary)
+  8. `loan`: Has personal loan? (binary)
+- **Related with the last contact of the current campaign**:  
+  9. `contact`: Contact communication type (categorical)  
+  10. `day`: Last contact day of the month (numeric)  
+  11. `month`: Last contact month of the year (categorical)  
+  12. `duration`: Last contact duration, in seconds (numeric)  
+- **Other attributes**:  
+  13. `campaign`: Number of contacts performed during this campaign for this client (numeric)  
+  14. `pdays`: Number of days that passed by after the client was last contacted from a previous campaign (numeric; -1 means client was not previously contacted)  
+  15. `previous`: Number of contacts performed before this campaign for this client (numeric)  
+  16. `poutcome`: Outcome of the previous marketing campaign (categorical)  
+- **Output variable (desired target)**:  
+  17. `y`: Has the client subscribed to a term deposit? (binary)  
+
+## 2. Data Analysis
+Data analysis and model selection are performed in the Jupiter notebook: `ml_prj_bank-marketing.ipynb`.
+
+### Notebook Sections
+1. Download dataset
+2. Prepare data
+3. Exploratory Data Analysis (EDA)
+4. Train models
+
+All steps are designed to be fully reproducible.
+
+## 3. Exploratory Data Analysis Results
+EDA performed in the aforementioned notebook reveals:
+- About 11% of customers subscribe to a marketing campaign.
+- Significant deviations exist in categorical features that might influence the target outcome.
+- Most influential features according to Mutual Information are: `poutcome`, `month`, `contact`.
+- `duration`, `previous`, and `pdays` are key numerical features according to correlation analysis.
+
+## 4. Models Training and Evaluation
+Four models were evaluated: Logistic Regression, Random Forest, Decision Tree, and XGBoost. Each model's performance was assessed using the Area Under the Curve (AUC) metric, then tuned to maximize AUC values:
+
+| Model               | Max AUC |
+|---------------------|---------|
+| Logistic Regression | 0.907   |
+| Decision Tree       | 0.883   |
+| Random Forest       | 0.930   |
+| XGBoost             | 0.926   |
+
+`Random Forest` achieved the best result with parameters `n_estimators=120` and `max_depth=6`, and thus was selected for deployment.
+
+## 5. Source Code
+The project includes three Python scripts:
+- `train.py`: Trains the selected model on the dataset and saves it to `model.bin`.
+- `predict.py`: Launches a Flask web service on port `9696` with a `/predict` API method. It accepts JSON with customer data as input and returns the prediction.
+- `predict-test.py`: Auxiliary script that calls the API on `localhost:9696/predict` with sample JSON, and prints out the prediction result.
+
+## 6. Dependency Management
+The project uses `pipenv` for environment isolation and dependency management. To set up the environment and install all required dependencies:
+```bash
+pipenv shell
+pipenv install
+```
 
 
-
-1. Problem desription
-
- A Portuguese banking institution applies direct marketing campaigns. The marketing campaigns were based on phone calls. Often, more than one contact to the same client was required, in order to access if the product (bank term deposit) would be (or not) subscribed.
- The project goal is to predict if the client will subscribe a term deposit based on available data about the customer.
- 
- The dataset is publicly available https://www.openml.org/search?type=data&sort=runs&status=active&id=1461 
-
- Dataset consists of followng fiedls: 
- bank client data:
-        1 - age (numeric)
-
-        2 - job : type of job (categorical: "admin.","unknown","unemployed","management","housemaid","entrepreneur", "student","blue-collar","self-employed","retired","technician","services")
-
-        3 - marital : marital status (categorical: "married","divorced","single"; note: "divorced" means divorced or widowed)
-
-        4 - education (categorical: "unknown","secondary","primary","tertiary")
-
-        5 - default: has credit in default? (binary: "yes","no")
-
-        6 - balance: average yearly balance, in euros (numeric)
-
-        7 - housing: has housing loan? (binary: "yes","no")
-
-        8 - loan: has personal loan? (binary: "yes","no")
-
-        related with the last contact of the current campaign:
-        9 - contact: contact communication type (categorical: "unknown","telephone","cellular")
-
-        10 - day: last contact day of the month (numeric)
-
-        11 - month: last contact month of year (categorical: "jan", "feb", "mar", ..., "nov", "dec")
-
-        12 - duration: last contact duration, in seconds (numeric)
-
-        other attributes:
-        13 - campaign: number of contacts performed during this campaign and for this client (numeric, includes last contact)
-
-        14 - pdays: number of days that passed by after the client was last contacted from a previous campaign (numeric, -1 means client was not previously contacted)
-
-        15 - previous: number of contacts performed before this campaign and for this client (numeric)
-
-        16 - poutcome: outcome of the previous marketing campaign (categorical: "unknown","other","failure","success")
-
-        output variable (desired target):
-        17 - y - has the client subscribed a term deposit? (binary: "yes","no")
- 
- 2. Data analysis
-    Data analysis and Model selsction is performed in Jupyter notebook ml_prj_bank-marketing.ipynb. 
-    It consists of folowing sections:
-      1. Download dataset 
-      2. Prepare data
-      3. EDA
-      4. Training models
-    All steps are designed to be fully reproducible/
- 3. Exploritary Data Analisys results
-    EDA is perormed in ml_prj_bank-marketing.ipynb notebook '3.EDA' section. Main results are:
-    - According to the target value distribution ~11 percents of customers apply to a marketing company;
-    - All categorical features have values (groups) with signifacant deviation from the gloabal mean target value, e.g. might highly invfuense the result;
-    - According to Mutual Information metric, the most relevant Categorical features are: poutcome,month,contact
-    - According to the Corellation analysis of Numerical features, the most important are: 'duration' , 'previous', 'pdays'
-
- 4. Models training and evaluation
-    In order to select the most fitting aproach, 4 models where trained on a dataset: Logistic Regression, Random Forest, Decision tree, XGBoost. 
-    Each model was evaluated using the Area Under the Curve (AUC) metric, and then tuned to maximize the AUC value. The relevant code and results is in '4.Training models' section of ml_prj_bank-marketing.ipynb.
-    Here is the outcome:
-    Model  |  Max_AUC
-    LogisticRegression | 0.907
-    Decision Tree | 0.883
-    Random Forest | 0.93
-    XGBoost | 0.926
-
-    The best result is achieved by 'Random Forest' with folowwing parameters n_estimators = 120, max_depth = 6. Therefore this model was selected for deploment.  
-
- 5. Source code
-    The project consists of 3 python scripts:     
-        train.py - logic which trains selected model on the dataset from /data folder and saves it into a file model.bin;
-        predict.py - launches the Flask web service  on the 9696 port and the /predict API method. It accepts JSON with customer data as an input and returns the prediction if the customer is going to subscribe or not. Prediction is based on the model from model.bin file. 
-        predict-test.py - auxilary script which invokes the API call to localhost:99696/predict  passing the sample JSON, and prints-out the result of prediction. COuld be used for tests.
-
- 6. Dependecy management
-    
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
+## 7. Conteinerization
+Application can be packed into a Docker-image. Dockerfile contains instructions to build a docker-image.
+In order to build docker immage, excute:
+```bash
 docker build -t bank-marketing-prediction .
-
+```
+In order to launc the docker-container (and forward the port 9696) execute the comand:
+```bash
 docker run -it -p 9696:9696 bank-marketing-prediction:latest
+```
 
+## 8. Test run
+  Start the docker-conatiner with the main aplication: 
+
+  ![run docker](images/Test-run-p1.png) 
+
+  Run a test-scrit from a separate terminal window:
+
+  ![run test](images/Test-run-p2.png) 
 
